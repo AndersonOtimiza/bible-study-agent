@@ -1,0 +1,27 @@
+fastapi
+uvicorn
+python-dotenv
+openai
+requests
+anthropic
+cohere
+huggingface-hub
+
+# ML/NLP para intertextualidade
+sentence-transformers
+faiss-cpu  # Para uso padrão em CPU
+torch
+numpy
+pandas
+
+# Testes
+pytest
+
+# Opcional (GPU):
+# Instalar PyTorch com CUDA apropriada:
+#   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+# Substituir faiss-cpu por faiss-gpu (recomendado via conda):
+#   conda install -c pytorch faiss-gpu
+# Para habilitar índice FAISS em GPU defina USE_FAISS_GPU=1 no .env
+
+# Provider local (Ollama) não requer pacote Python dedicado: instalar servidor Ollama externamente.

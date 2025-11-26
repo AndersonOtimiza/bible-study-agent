@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bible Study Agent</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #343541;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            width: 100%;
+            height: 100vh;
+            background: #343541;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: #202123;
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #4d4d4f;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .provider-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .provider-selector label {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .provider-selector label {
+            display: none;
+        }
+
+        .provider-selector select {
+            padding: 6px 12px;
+            background-color: #40414f;
+            border: 1px solid #565869;
+            border-radius: 6px;
+            color: #ececf1;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .provider-selector select:hover {
+            background-color: #4d4d4f;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+        }
+
+        .message {
+            width: 100%;
+            padding: 24px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .message-content {
+            max-width: 48rem;
+            width: 100%;
+            padding: 0 20px;
+            line-height: 1.7;
+            font-size: 16px;
+        }
+
+        .user-message {
+            background-color: #343541;
+        }
+
+        .user-message .message-content {
+            color: #ececf1;
+        }
+
+        .bot-message {
+            background-color: #444654;
+        }
+
+        .bot-message .message-content {
+            color: #d1d5db;
+        }
+
+        .input-area {
+            padding: 24px 20px 32px;
+            background-color: #343541;
+            display: flex;
+            justify-content: center;
+        }
+
+        .input-wrapper {
+            max-width: 48rem;
+            width: 100%;
+            position: relative;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 60px;
+            max-height: 200px;
+            padding: 16px 60px 16px 16px;
+            background-color: #40414f;
+            border: 1px solid #565869;
+            border-radius: 12px;
+            color: #ececf1;
+            font-size: 16px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            outline: none;
+            box-sizing: border-box;
+            resize: none;
+            line-height: 1.5;
+        }
+
+        textarea:focus {
+            border-color: #8e8ea0;
+        }
+
+        textarea::placeholder {
+            color: #8e8ea0;
+        }
+
+        button {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            padding: 10px;
+            width: 36px;
+            height: 36px;
+            background-color: #19c37d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #1a9f6a;
+        }
+
+        button:disabled {
+            background-color: #4d4d4f;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .loading {
+            font-style: italic;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .config-btn {
+            background-color: #40414f;
+            border: 1px solid #565869;
+            border-radius: 6px;
+            color: #ececf1;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 6px 12px;
+            transition: all 0.2s;
+            position: relative;
+            transform: none;
+        }
+
+        .config-btn:hover {
+            background-color: #4d4d4f;
+        }
+
+        .gpu-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .gpu-status.cpu {
+            background-color: rgba(100, 100, 100, 0.3);
+            color: white;
+        }
+
+        .gpu-status.cuda {
+            background-color: rgba(76, 175, 80, 0.4);
+            color: white;
+            border-color: rgba(76, 175, 80, 0.8);
+        }
+
+        .gpu-status:hover {
+            transform: scale(1.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #4a90e2;
+        }
+
+        .close-btn {
+            font-size: 28px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        .close-btn:hover {
+            color: #000;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .save-btn:hover {
+            background-color: #357abd;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-container">
+        <div class="header">
+            <h1>Estudo Bíblico AI</h1>
+            <div class="provider-selector">
+                <label for="aiProvider">Modelo de IA:</label>
+                <select id="aiProvider" onchange="updateProvider()">
+                    <option value="openai">OpenAI (GPT-4o)</option>
+                    <option value="anthropic">Anthropic (Claude)</option>
+                    <option value="cohere">Cohere</option>
+                    <option value="huggingface">Hugging Face</option>
+                    <optgroup label="Ollama - Modelos Locais">
+                        <option value="ollama:llama3.2:latest">Llama 3.2 (2GB)</option>
+                        <option value="ollama:gemma3:4b">Gemma 3 (4B - 3.3GB)</option>
+                        <option value="ollama:gemma3-gpu:4b">Gemma 3 GPU (4B - 3.3GB)</option>
+                        <option value="ollama:gpt-oss:120b">GPT-OSS (120B - 65GB)</option>
+                        <option value="ollama:gpt-oss-gpu:120b">GPT-OSS GPU (120B - 65GB)</option>
+                        <option value="ollama:gpt-oss-optimized:120b">GPT-OSS Optimized (120B - 65GB)</option>
+                    </optgroup>
+                </select>
+                <div class="gpu-status" id="gpuStatus" onclick="toggleGPU()" title="Clique para alternar CPU/GPU">
+                    <span id="gpuIcon">🖥️</span>
+                    <span id="gpuText">CPU</span>
+                </div>
+                <button class="config-btn" onclick="openConfigModal()" title="Configurar Chaves de API">⚙️</button>
+            </div>
+        </div>
+        <div class="messages" id="messages">
+            <div class="message bot-message">
+                <div class="message-content">
+                    Olá! Sou seu assistente de estudos bíblicos. Como posso ajudar você hoje?
+                </div>
+            </div>
+        </div>
+        <div class="input-area">
+            <div class="input-wrapper">
+                <textarea id="userInput" placeholder="Enviar mensagem..." rows="1"></textarea>
+                <button onclick="sendMessage()" id="sendBtn">↑</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Configuração de API Keys -->
+    <div id="configModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ Configurar Chaves de API</h2>
+                <button class="close-btn" onclick="closeConfigModal()">&times;</button>
+            </div>
+            <form id="apiKeysForm" onsubmit="saveApiKeys(event)">
+                <div class="form-group">
+                    <label for="openaiKey">🔑 OpenAI API Key</label>
+                    <input type="password" id="openaiKey" placeholder="sk-...">
+                    <small>Obtenha em: <a href="https://platform.openai.com/api-keys"
+                            target="_blank">platform.openai.com</a></small>
+                </div>
+                <div class="form-group">
+                    <label for="anthropicKey">🔑 Anthropic API Key</label>
+                    <input type="password" id="anthropicKey" placeholder="sk-ant-...">
+                    <small>Obtenha em: <a href="https://console.anthropic.com/"
+                            target="_blank">console.anthropic.com</a></small>
+                </div>
+                <div class="form-group">
+                    <label for="cohereKey">🔑 Cohere API Key</label>
+                    <input type="password" id="cohereKey" placeholder="...">
+                    <small>Obtenha em: <a href="https://dashboard.cohere.com/api-keys"
+                            target="_blank">dashboard.cohere.com</a></small>
+                </div>
+                <div class="form-group">
+                    <label for="hfToken">🔑 Hugging Face Token</label>
+                    <input type="password" id="hfToken" placeholder="hf_...">
+                    <small>Obtenha em: <a href="https://huggingface.co/settings/tokens"
+                            target="_blank">huggingface.co/settings</a></small>
+                </div>
+                <button type="submit" class="save-btn">💾 Salvar Configurações</button>
+            </form>
+            <div
+                style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px; font-size: 12px; color: #666;">
+                <strong>ℹ️ Nota:</strong> As chaves são armazenadas localmente no navegador e enviadas com cada
+                requisição. Para uso em produção, configure as chaves no arquivo .env do servidor.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentProvider = 'openai';
+        let apiKeys = loadApiKeys();
+
+        function loadApiKeys() {
+            return {
+                openai: localStorage.getItem('openai_key') || '',
+                anthropic: localStorage.getItem('anthropic_key') || '',
+                cohere: localStorage.getItem('cohere_key') || '',
+                huggingface: localStorage.getItem('hf_token') || ''
+            };
+        }
+
+        // Funções de controle de GPU
+        async function updateGPUStatus() {
+            try {
+                const response = await fetch('/gpu/status');
+                const data = await response.json();
+                console.log('GPU Status:', data);
+
+                const statusEl = document.getElementById('gpuStatus');
+                const iconEl = document.getElementById('gpuIcon');
+                const textEl = document.getElementById('gpuText');
+
+                if (!statusEl) {
+                    console.error('Elemento gpuStatus não encontrado!');
+                    return;
+                }
+
+                if (data.device === 'cuda') {
+                    statusEl.className = 'gpu-status cuda';
+                    iconEl.textContent = '🚀';
+                    textEl.textContent = 'GPU';
+                    statusEl.title = `${data.gpu_name} - ${data.gpu_memory_allocated.toFixed(2)}GB / ${data.gpu_memory_total.toFixed(2)}GB`;
+                } else {
+                    statusEl.className = 'gpu-status cpu';
+                    iconEl.textContent = '🖥️';
+                    textEl.textContent = 'CPU';
+                    statusEl.title = 'Clique para alternar para GPU';
+                }
+            } catch (error) {
+                console.error('Erro ao obter status GPU:', error);
+            }
+        }
+
+        async function toggleGPU() {
+            try {
+                const response = await fetch('/gpu/toggle', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    await updateGPUStatus();
+                    addMessage(`✅ ${data.message}`, false);
+                } else {
+                    addMessage(`❌ ${data.message}`, false);
+                }
+            } catch (error) {
+                console.error('Erro ao alternar GPU:', error);
+                addMessage('❌ Erro ao alternar GPU', false);
+            }
+        }
+
+        // Atualizar status GPU ao carregar página
+        updateGPUStatus();
+        // Atualizar a cada 10 segundos
+        setInterval(updateGPUStatus, 10000);
+
+        function openConfigModal() {
+            document.getElementById('openaiKey').value = apiKeys.openai;
+            document.getElementById('anthropicKey').value = apiKeys.anthropic;
+            document.getElementById('cohereKey').value = apiKeys.cohere;
+            document.getElementById('hfToken').value = apiKeys.huggingface;
+            document.getElementById('configModal').style.display = 'block';
+        }
+
+        function closeConfigModal() {
+            document.getElementById('configModal').style.display = 'none';
+        }
+
+        function saveApiKeys(event) {
+            event.preventDefault();
+            apiKeys.openai = document.getElementById('openaiKey').value;
+            apiKeys.anthropic = document.getElementById('anthropicKey').value;
+            apiKeys.cohere = document.getElementById('cohereKey').value;
+            apiKeys.huggingface = document.getElementById('hfToken').value;
+
+            localStorage.setItem('openai_key', apiKeys.openai);
+            localStorage.setItem('anthropic_key', apiKeys.anthropic);
+            localStorage.setItem('cohere_key', apiKeys.cohere);
+            localStorage.setItem('hf_token', apiKeys.huggingface);
+
+            closeConfigModal();
+            appendMessage('✅ Configurações salvas com sucesso!', 'bot-message');
+        }
+
+        function updateProvider() {
+            currentProvider = document.getElementById('aiProvider').value;
+            const displayName = getProviderName(currentProvider);
+            appendMessage(`Modelo alterado para: ${displayName}`, 'bot-message');
+        }
+
+        function getProviderName(provider) {
+            const names = {
+                'openai': 'OpenAI (GPT-4o)',
+                'anthropic': 'Anthropic (Claude)',
+                'cohere': 'Cohere',
+                'huggingface': 'Hugging Face',
+                'ollama:llama3': 'Llama 3 (8B)',
+                'ollama:llama3.2': 'Llama 3.2 (3B)',
+                'ollama:mistral': 'Mistral (7B)',
+                'ollama:gemma2': 'Gemma 2 (9B)',
+                'ollama:phi3': 'Phi-3 (3.8B)',
+                'ollama:qwen2': 'Qwen 2 (7B)'
+            };
+            return names[provider] || provider;
+        }
+
+        window.onclick = function (event) {
+            const modal = document.getElementById('configModal');
+            if (event.target == modal) {
+                closeConfigModal();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const messagesDiv = document.getElementById('messages');
+            const question = input.value.trim();
+
+            if (!question) return;
+
+            // Disable input
+            input.disabled = true;
+            sendBtn.disabled = true;
+
+            // Add user message
+            appendMessage(question, 'user-message');
+            input.value = '';
+
+            // Add loading indicator
+            const loadingId = 'loading-' + Date.now();
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = loadingId;
+            loadingDiv.className = 'message bot-message loading';
+            const loadingContent = document.createElement('div');
+            loadingContent.className = 'message-content';
+            loadingContent.textContent = 'Pesquisando nas escrituras...';
+            loadingDiv.appendChild(loadingContent);
+            messagesDiv.appendChild(loadingDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            try {
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+
+                // Adicionar chave de API correspondente no header
+                const providerBase = currentProvider.split(':')[0];
+                if (providerBase === 'openai' && apiKeys.openai) {
+                    headers['X-OpenAI-Key'] = apiKeys.openai;
+                } else if (providerBase === 'anthropic' && apiKeys.anthropic) {
+                    headers['X-Anthropic-Key'] = apiKeys.anthropic;
+                } else if (providerBase === 'cohere' && apiKeys.cohere) {
+                    headers['X-Cohere-Key'] = apiKeys.cohere;
+                } else if (providerBase === 'huggingface' && apiKeys.huggingface) {
+                    headers['X-HF-Token'] = apiKeys.huggingface;
+                }
+
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({
+                        question: question,
+                        provider: currentProvider
+                    })
+                });
+
+                const data = await response.json();
+
+                // Remove loading
+                document.getElementById(loadingId).remove();
+
+                // Add bot response
+                appendMessage(data.response, 'bot-message');
+
+            } catch (error) {
+                document.getElementById(loadingId).remove();
+                appendMessage('Desculpe, ocorreu um erro ao conectar com o servidor.', 'bot-message');
+                console.error('Error:', error);
+            } finally {
+                input.disabled = false;
+                sendBtn.disabled = false;
+                input.focus();
+            }
+        }
+
+        function appendMessage(text, className) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${className}`;
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            // Simple conversion of newlines to <br> for display
+            messageContent.innerHTML = text.replace(/\n/g, '<br>');
+            messageDiv.appendChild(messageContent);
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // Auto-resize textarea
+        const textarea = document.getElementById('userInput');
+        textarea.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+        });
+
+        textarea.addEventListener('keydown', handleKeyPress);
+    </script>
+</body>
+
+</html>
