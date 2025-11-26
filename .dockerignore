@@ -1,0 +1,45 @@
+# Ignorar em builds
+.git/
+.github/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Documentação e arquivos grandes (não necessários no container)
+Documentação/
+Nova pasta/
+Publicações de Terceiros para Confrontar ou Corroborar/
+Metodologia/
+*.md
+!README.md
+
+# Arquivos locais
+.env
+.env.local
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Modelos grandes (se não forem usados)
+models/*.bin
+models/*.safetensors
+models/*.onnx
+
+# Git
+.gitignore
+.gitattributes

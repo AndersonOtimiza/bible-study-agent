@@ -10,11 +10,11 @@ RUN apt-get update && apt-get install -y \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copiar requirements
-COPY requirements.txt .
+# Copiar requirements otimizado para cloud
+COPY requirements.cloud.txt .
 
-# Instalar dependências Python
-RUN pip install --no-cache-dir -r requirements.txt
+# Instalar dependências Python (CPU-only, mais rápido)
+RUN pip install --no-cache-dir -r requirements.cloud.txt
 
 # Copiar código da aplicação
 COPY src/ ./src/

@@ -1,0 +1,16 @@
+# Requirements otimizados para Cloud Run (CPU only)
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+python-dotenv==1.0.1
+openai==1.54.0
+requests==2.32.3
+anthropic==0.39.0
+cohere==5.11.0
+huggingface-hub==0.26.2
+
+# ML/NLP - Versões otimizadas para CPU
+sentence-transformers==3.3.1
+faiss-cpu==1.9.0
+torch==2.5.1+cpu --extra-index-url https://download.pytorch.org/whl/cpu
+numpy==1.26.4
+pandas==2.2.3
