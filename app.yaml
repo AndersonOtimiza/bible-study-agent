@@ -1,0 +1,29 @@
+# Cloud Run Configuration
+runtime: python311
+
+# Configurações de recursos
+resources:
+  limits:
+    memory: 4Gi
+    cpu: 2
+
+# Variáveis de ambiente
+env_variables:
+  PYTHONUNBUFFERED: "1"
+  USE_GPU: "0"
+  TORCH_DEVICE: "cpu"
+  ENABLE_CACHE: "1"
+  CACHE_MAX_SIZE: "128"
+
+# Health check
+liveness_check:
+  path: "/health"
+  initial_delay_sec: 30
+  timeout_sec: 10
+  period_sec: 30
+
+# Escala automática
+automatic_scaling:
+  min_instances: 0
+  max_instances: 10
+  target_cpu_utilization: 0.8
