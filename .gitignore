@@ -150,3 +150,15 @@ cython_debug/
 
 # VS Code
 .vscode/
+
+# Submodules e repositórios Git embutidos
+Documentação/Bible/bhsa/
+Documentação/Bible/sblgnt/
+
+# Models (arquivos grandes)
+models/
+*.bin
+*.safetensors
+*.onnx
+*.pt
+*.pth
